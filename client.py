@@ -23,6 +23,7 @@ def send_data(server_ip: str, server_port: int | str, data: str):
         len(data),
         bytes(data, encoding="utf-8")
     )
+    print(f"sending {packet}")
     with socket.socket() as connection:
         connection.connect((server_ip, int(server_port)))
         connection.sendall(packet)
