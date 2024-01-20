@@ -20,9 +20,8 @@ class Listener:
 
     def accept(self) -> Connection:
         """Accept a connection."""
-        connection, address = self.socket.accept()
-        connection.close()
-        return Connection.connect(address[0], address[1])
+        connection, _ = self.socket.accept()
+        return Connection(connection)
 
     def __repr__(self) -> str:
         host, port = self.socket.getsockname()

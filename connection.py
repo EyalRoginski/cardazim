@@ -7,8 +7,11 @@ RECV_BUFSIZE = 4096
 class Connection:
     """Represents a connection that can read/receive formatted data over a socket."""
 
-    def __init__(self):
-        self.socket = socket.socket()
+    def __init__(self, sock=None):
+        if sock is None:
+            self.socket = socket.socket()
+        else:
+            self.socket = sock
 
     @classmethod
     def connect(cls, host: str, port: str | int):
