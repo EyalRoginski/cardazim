@@ -20,9 +20,7 @@ class Connection:
     def send_message(self, message):
         """Send a message through the socket."""
         packet = struct.pack(
-            f"<I{len(message)}s",
-            len(message),
-            bytes(message, encoding="utf-8")
+            f"<I{len(message)}s", len(message), bytes(message, encoding="utf-8")
         )
         self.socket.sendall(packet)
 
@@ -31,13 +29,12 @@ class Connection:
         data = self.socket.recv(RECV_BUFSIZE)
         try:
             message_length: int = struct.unpack("<I", data[:4])[0]
-            message: bytes = struct.unpack(
-                f"{message_length}s", data[4:])[0]
+            message: bytes = struct.unpack(f"{message_length}s", data[4:])[0]
         except struct.error as exc:
             raise RuntimeError(
                 f"Received malformed message from {self.socket.getpeername()}.\n\
-                    Message was: {data}") \
-                from exc
+                    Message was: {data}"
+            ) from exc
         message = message.decode(encoding="utf-8")
         return message
 
