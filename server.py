@@ -7,6 +7,7 @@ import argparse
 import threading
 from connection import Connection
 from listener import Listener
+import struct
 
 
 RECV_BUFSIZE = 4096
@@ -30,12 +31,16 @@ def handle_connection(connection: Connection, printing_lock: threading.Lock):
     with connection:
         try:
             message = connection.receive_message()
-        except RuntimeError:
-            print(f"Invalid message from {connection}.")
-            return
+            message_length: int = struct.unpack("<I", message[:4])[0]
+            message: bytes = struct.unpack(f"{message_length}s", message[4:])[0]
+        except struct.error as exc:
+            raise RuntimeError(
+                f"Received malformed message from {connection}.\n\
+                    Message was: {message}"
+            ) from exc
+        message = message.decode(encoding="utf-8")
         with printing_lock:
-            # Locking printing to not print garbled junk.
-            print(f"Received message: {message}")
+            print(message)
 
 
 def run_server(ip: str, port: str | int):

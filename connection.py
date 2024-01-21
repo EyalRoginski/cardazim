@@ -1,5 +1,4 @@
 import socket
-import struct
 
 RECV_BUFSIZE = 4096
 
@@ -20,26 +19,14 @@ class Connection:
         connection.socket.connect((host, int(port)))
         return connection
 
-    def send_message(self, message):
-        """Send a message through the socket."""
-        packet = struct.pack(
-            f"<I{len(message)}s", len(message), bytes(message, encoding="utf-8")
-        )
-        self.socket.sendall(packet)
+    def send_message(self, data):
+        """Send data through the socket."""
+        self.socket.sendall(data)
 
     def receive_message(self) -> str:
         """Receives a message from the socket. If it is malformed, raises `RuntimeError`."""
         data = self.socket.recv(RECV_BUFSIZE)
-        try:
-            message_length: int = struct.unpack("<I", data[:4])[0]
-            message: bytes = struct.unpack(f"{message_length}s", data[4:])[0]
-        except struct.error as exc:
-            raise RuntimeError(
-                f"Received malformed message from {self.socket.getpeername()}.\n\
-                    Message was: {data}"
-            ) from exc
-        message = message.decode(encoding="utf-8")
-        return message
+        return data
 
     def close(self):
         """Close the connection."""

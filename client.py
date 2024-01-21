@@ -5,14 +5,14 @@ Description: Cardazim client.
 
 import argparse
 import sys
+import struct
 from connection import Connection
 
 
 def send_data(connection: Connection, data: str):
-    """
-    Send data to server in address (server_ip, server_port).
-    """
-    connection.send_message(data)
+    """Send data to server in address (server_ip, server_port)."""
+    packet = struct.pack(f"<I{len(data)}s", len(data), bytes(data, encoding="utf-8"))
+    connection.send_message(packet)
 
 
 def get_args():
@@ -25,9 +25,7 @@ def get_args():
 
 
 def main():
-    """
-    Implementation of CLI and sending data to server.
-    """
+    """Implementation of CLI and sending data to server."""
     args = get_args()
     with Connection.connect(args.server_ip, args.server_port) as connection:
         send_data(connection, args.data)
