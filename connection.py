@@ -19,13 +19,20 @@ class Connection:
         connection.socket.connect((host, int(port)))
         return connection
 
-    def send_message(self, data):
+    def send_message(self, data: bytes):
         """Send data through the socket."""
         self.socket.sendall(data)
 
-    def receive_message(self) -> str:
+    def receive_message(self) -> bytes:
         """Receives a message from the socket. If it is malformed, raises `RuntimeError`."""
-        data = self.socket.recv(RECV_BUFSIZE)
+        part = self.socket.recv(RECV_BUFSIZE)
+        data = part
+        count = 1
+        # Just using RECV_BUFSIZE left the loop early because of smaller chunks.
+        while len(part) >= RECV_BUFSIZE // 2:
+            count += 1
+            part = self.socket.recv(RECV_BUFSIZE)
+            data += part
         return data
 
     def close(self):
