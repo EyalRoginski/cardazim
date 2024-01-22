@@ -7,7 +7,7 @@ import argparse
 import threading
 from connection import Connection
 from listener import Listener
-import struct
+from card import Card
 
 
 RECV_BUFSIZE = 4096
@@ -30,17 +30,13 @@ def handle_connection(connection: Connection, printing_lock: threading.Lock):
     """
     with connection:
         try:
-            message = connection.receive_message()
-            message_length: int = struct.unpack("<I", message[:4])[0]
-            message: bytes = struct.unpack(f"{message_length}s", message[4:])[0]
-        except struct.error as exc:
-            raise RuntimeError(
-                f"Received malformed message from {connection}.\n\
-                    Message was: {message}"
-            ) from exc
-        message = message.decode(encoding="utf-8")
+            packet = connection.receive_message()
+            card = Card.deserialize(packet)
+        except RuntimeError:
+            print(f"Got malformed message from {connection}")
+            return
         with printing_lock:
-            print(message)
+            print(f"Received card '{card.name}' by {card.creator}")
 
 
 def run_server(ip: str, port: str | int):
@@ -76,7 +72,7 @@ def main():
     try:
         run_server(args.ip, args.port)
     except KeyboardInterrupt:
-        pass
+        print()
 
 
 if __name__ == "__main__":
