@@ -1,12 +1,15 @@
+import hashlib
+import struct
 from PIL import Image
 from Crypto.Cipher import AES
-import hashlib
 
 NONCE = b"arazim"
+BYTES_PER_PIXEL = 4
+BYTES_PER_UINT = 4
 
 
 class CryptImage:
-    """Represents an encrypted image."""
+    """Represents an encrypted RGBA image."""
 
     def __init__(self, image: Image):
         self.image: Image = image
@@ -25,12 +28,6 @@ class CryptImage:
         single_hash_key: bytes = hashlib.sha256(key).digest()
         cipher = AES.new(single_hash_key, AES.MODE_EAX, nonce=NONCE)
         encrypted_image_data = cipher.encrypt(image_data)
-        print("Image len: ", len(image_data))
-        print("EncImage len: ", len(encrypted_image_data))
-        print("image", image_data[:100])
-        print("encrypted", encrypted_image_data[:100])
-        # encrypted_image = Image.frombytes("RGBA", self.image.size, encrypted_image_data)
-        # self.image = encrypted_image
         self.image.frombytes(encrypted_image_data)
         double_hash_key = hashlib.sha256(single_hash_key).digest()
         self.key_hash = double_hash_key
@@ -51,15 +48,59 @@ class CryptImage:
         self.key_hash = None
         return True
 
+    def serialize(self) -> bytes:
+        """
+        Serialize the CryptImage into the format:
 
-def test():
-    im = CryptImage.create_from_path("/home/roginski/Tranzania.png")
-    im.image.save("/home/roginski/test1.png")
-    im.encrypt(b"secret")
-    print(im.decrypt(b"wrong"))
-    print(im.decrypt(b"secret"))
-    im.image.save("/home/roginski/test2.png")
+        `<uint key_hash_length>` `<bytes key_hash>` `<uint width>`
+        `<uint height>` `<bytes image data>`
 
+        with uints in Little-Endian
+        """
 
-if __name__ == "__main__":
-    test()
+        width, height = self.image.size
+        image_data = self.image.tobytes()
+        serialization = struct.pack(
+            f"<I{len(self.key_hash)}sII{len(image_data)}s",
+            len(self.key_hash),
+            self.key_hash,
+            width,
+            height,
+            image_data,
+        )
+        return serialization
+
+    @classmethod
+    def deserialize(cls, serialization: bytes):
+        """
+        Deserialize a CryptImage object of the format:
+
+        `<uint key_hash_length>` `<bytes key_hash>` `<uint width>`
+        `<uint height>` `<bytes image data>`
+
+        Raises a `RuntimeError` if malformed object received.
+        """
+        try:
+            (key_hash_length,) = struct.unpack_from("<I", serialization)
+            (key_hash,) = struct.unpack_from(
+                f"{key_hash_length}s", serialization, BYTES_PER_UINT
+            )
+
+            width, height = struct.unpack_from(
+                "<II", serialization, BYTES_PER_UINT + key_hash_length
+            )
+
+            (image_data,) = struct.unpack_from(
+                f"{width * height * BYTES_PER_PIXEL}s",
+                serialization,
+                BYTES_PER_UINT + key_hash_length + 2 * BYTES_PER_UINT,
+            )
+
+            image = Image.frombytes("RGBA", (width, height), image_data)
+        except struct.error as exc:
+            raise RuntimeError(
+                "CryptImage.deserialize received a malformed object serialization."
+            ) from exc
+        crypt_image = CryptImage(image)
+        crypt_image.key_hash = key_hash
+        return crypt_image
