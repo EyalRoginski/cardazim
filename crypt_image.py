@@ -22,8 +22,14 @@ class CryptImage:
         crypt_image = CryptImage(image)
         return crypt_image
 
-    def encrypt(self, key: bytes):
+    def encrypt(self, key: bytes | str):
         """Encrypt the image data using `key`."""
+
+        try:
+            key = key.encode()
+        except AttributeError:
+            pass
+
         image_data: bytes = self.image.tobytes()
         single_hash_key: bytes = hashlib.sha256(key).digest()
         cipher = AES.new(single_hash_key, AES.MODE_EAX, nonce=NONCE)
@@ -32,10 +38,16 @@ class CryptImage:
         double_hash_key = hashlib.sha256(single_hash_key).digest()
         self.key_hash = double_hash_key
 
-    def decrypt(self, key: bytes) -> bool:
+    def decrypt(self, key: bytes | str) -> bool:
         """
         Decrypts the image if `key` is correct. Returns whether or not decryption was successful.
         """
+
+        try:
+            key = key.encode()
+        except AttributeError:
+            pass
+
         single_hash_key: bytes = hashlib.sha256(key).digest()
         double_hash_key = hashlib.sha256(single_hash_key).digest()
         if self.key_hash != double_hash_key:
