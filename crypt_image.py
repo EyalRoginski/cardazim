@@ -22,6 +22,15 @@ class CryptImage:
         crypt_image = CryptImage(image)
         return crypt_image
 
+    @property
+    def image_path(self) -> str:
+        """The path of the source image."""
+        return self.image.filename
+
+    def save_image(self, path: str):
+        """Save the image to `path`."""
+        self.image.save(path)
+
     def encrypt(self, key: bytes | str):
         """Encrypt the image data using `key`."""
 

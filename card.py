@@ -81,3 +81,12 @@ class Card:
         riddle = riddle.decode()
 
         return Card(name, creator, image, riddle)
+
+    @property
+    def image_path(self) -> str:
+        """The path to the source file of the Card's image."""
+        return self.image.image_path
+
+    def save_image(self, path: str):
+        """Save the image to `path`."""
+        self.image.save_image(path)
