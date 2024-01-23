@@ -11,25 +11,21 @@ BYTES_PER_UINT = 4
 class CryptImage:
     """Represents an encrypted RGBA image."""
 
-    def __init__(self, image: Image):
+    def __init__(self, image: Image, image_path: str = None):
         self.image: Image = image
+        self.image_path = image_path
         self.key_hash = None
 
     @classmethod
     def create_from_path(cls, path: str):
         """Create a non-encrypted CryptImage from a given path."""
-        image = Image.open(path)
-        crypt_image = CryptImage(image)
+        image = Image.open(path).convert("RGBA")
+        crypt_image = CryptImage(image, path)
         return crypt_image
 
-    @property
-    def image_path(self) -> str:
-        """The path of the source image."""
-        return self.image.filename
-
-    def save_image(self, path: str):
+    def save_image(self, path: str, mode="RGBA"):
         """Save the image to `path`."""
-        self.image.save(path)
+        self.image.convert(mode).save(path)
 
     def encrypt(self, key: bytes | str):
         """Encrypt the image data using `key`."""

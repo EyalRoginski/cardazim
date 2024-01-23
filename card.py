@@ -87,6 +87,29 @@ class Card:
         """The path to the source file of the Card's image."""
         return self.image.image_path
 
-    def save_image(self, path: str):
+    def save_image(self, path: str, mode="RGBA"):
         """Save the image to `path`."""
-        self.image.save_image(path)
+        self.image.save_image(path, mode)
+
+    def solve(self, solution: str | bytes) -> bool:
+        """
+        Try to solve the card with `solution`. Returns whether or not the solution
+        is correct.
+        """
+        if self.image.decrypt(solution):
+            self.solution = solution
+            return True
+        return False
+
+    def encrypt(self, key=None):
+        """
+        Encrypt the card, setting `self.solution` to `None`. If both `key` and `self.solution`
+        are `None`, returns and does not encrypt.
+        """
+        if key is None:
+            if self.solution is None:
+                return
+            key = self.solution
+
+        self.image.encrypt(key)
+        self.solution = None
