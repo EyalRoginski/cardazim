@@ -11,9 +11,6 @@ from card import Card
 def send_card(connection: Connection, card: Card):
     """Send the `card` to server in address represented by `connection`."""
     packet = card.serialize()
-    print(packet[:100])
-    print(len(packet))
-    print(len(packet) / 4096)
     connection.send_message(packet)
 
 
@@ -41,7 +38,7 @@ def main():
             args.card_riddle,
             args.card_solution,
         )
-        card.image.encrypt(card.riddle)
+        card.encrypt(card.solution)
         send_card(connection, card)
     print("Done.")
 
