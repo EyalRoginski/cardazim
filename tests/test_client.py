@@ -1,5 +1,5 @@
-import pytest
 import sys
+import pytest
 
 # pylint: disable=missing-class-docstring, missing-function-docstring, invalid-name
 
