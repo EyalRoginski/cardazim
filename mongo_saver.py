@@ -59,3 +59,31 @@ class MongoSaver:
             metadata["riddle"],
             metadata["solution"],
         )
+
+    def get_creators(self) -> list[str]:
+        """
+        Get a list of all creators' names.
+        """
+        return [doc["creator"] for doc in self.collection.find(projection=["creator"])]
+
+    def get_cards(self, creator: str) -> list[str]:
+        """
+        Get a list of the names of all the cards a creator has submitted.
+        """
+        return [
+            doc["name"]
+            for doc in self.collection.find({"creator": creator}, projection=["name"])
+        ]
+
+    def get_card_metadata(self, card_id: CardID) -> dict[str, str]:
+        """
+        Get a card's metadata via its ID.
+        """
+        doc = self.collection.find_one(
+            {"name": card_id.name, "creator": card_id.creator}
+        )
+
+        return {
+            key: doc[key]
+            for key in ("creator", "name", "riddle", "solution", "image_path")
+        }
