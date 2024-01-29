@@ -164,3 +164,4 @@ cython_debug/
 # Cardazim specific
 unsolved_cards/
 solved_cards/
+*.jpg

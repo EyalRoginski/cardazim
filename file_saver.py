@@ -3,6 +3,7 @@ from os import mkdir
 import json
 from furl import furl
 from card import Card
+from card_id import CardID
 
 
 class FileSaver:
@@ -11,14 +12,18 @@ class FileSaver:
     """
 
     def __init__(self, path: str = "."):
-        self.path: Path = furl(path).path
+        self.path = Path(furl(path).path)
+        if not self.path.exists():
+            mkdir(self.path)
+        elif not self.path.is_dir():
+            raise TypeError(f"{self.path} isn't a directory.")
 
     def save(self, card: Card):
         """
         Saves the `card` including its metadata to a new directory under `dir_path`.
         Overrides existing data.
         """
-        card_dir = self.path / f"{card.name}"
+        card_dir = self.path / f"{CardID.from_card(card).resolve()}"
         if not card_dir.exists():
             mkdir(card_dir)
 
@@ -40,9 +45,12 @@ class FileSaver:
         image_path.unlink(missing_ok=True)
         card.save_image(image_path, "RGB")
 
-    def load(self, card_id: str):
-        """Load a card from directory `card_dir`."""
-        card_dir = self.path / card_id
+    def load(self, card_id: CardID):
+        """
+        Load a card by CardID.
+        Overwrites `<image_dir>/<card_id>.jpg`
+        """
+        card_dir = self.path / f"{card_id.resolve()}"
         if not card_dir.is_dir():
             raise TypeError(f"{card_dir} isn't a directory.")
 
