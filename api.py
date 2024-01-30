@@ -1,9 +1,11 @@
-from flask import Flask, send_file
+from flask import Flask, send_file, jsonify
+from flask_cors import CORS
 import click
 from saver import Saver
 from card_id import CardID
 
 app = Flask(__name__)
+CORS(app)
 saver: Saver = None
 
 
@@ -12,7 +14,6 @@ def get_creators():
     """
     Get a list of all creators in a JSON format.
     """
-    print("getting creators")
     return saver.get_creators()
 
 
