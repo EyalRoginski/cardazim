@@ -51,13 +51,19 @@ export default {
 </script>
 
 <template>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    </head>
+
     <div>
-        <button @click="refresh_creators">Refresh</button>
+        <button @click="refresh_creators">Refresh Creators</button>
         <select v-model="selected_creator" @change="refresh_cards">
             <option v-for="creator in creators">
                 {{ creator }}
             </option>
         </select>
     </div>
+
     <Card v-for="card in cards" :card="card" />
 </template>
